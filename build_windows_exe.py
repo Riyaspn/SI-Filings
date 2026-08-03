@@ -103,14 +103,40 @@ def build_executable():
     
     dist_folder = os.path.abspath(os.path.join("dist", folder_name))
     
-    # Copy Chrome extension into distribution bundle
+    # Secure & Clean Chrome Extension Bundle (Exclude dev tools, strip comments)
     ext_src = os.path.abspath(EXTENSION_DIR_NAME)
     ext_dest = os.path.join(dist_folder, "chrome_extension")
     if os.path.exists(ext_src):
         if os.path.exists(ext_dest):
             shutil.rmtree(ext_dest)
-        shutil.copytree(ext_src, ext_dest)
-        print(f"✅ Bundled Chrome Extension into: {ext_dest}")
+        os.makedirs(ext_dest, exist_ok=True)
+
+        import re
+        whitelist_files = {"manifest.json", "background.js", "content.js", "popup.html", "popup.js"}
+        
+        for fname in os.listdir(ext_src):
+            src_file = os.path.join(ext_src, fname)
+            if os.path.isfile(src_file) and (fname in whitelist_files or fname.endswith(".ico") or fname.endswith(".png")):
+                dest_file = os.path.join(ext_dest, fname)
+                if fname.endswith(".js"):
+                    # Apply automated IP protection & comment stripping
+                    with open(src_file, "r", encoding="utf-8", errors="ignore") as in_f:
+                        content = in_f.read()
+                    # Strip multi-line /* ... */ comments
+                    content = re.sub(r'/\*[\s\S]*?\*/', '', content)
+                    # Strip standalone single-line // comments & empty lines
+                    lines = []
+                    for line in content.splitlines():
+                        stripped = line.strip()
+                        if stripped.startswith("//") or not stripped:
+                            continue
+                        lines.append(line)
+                    with open(dest_file, "w", encoding="utf-8") as out_f:
+                        out_f.write("/* Copyright (C) 2026 Sharp Intell Technologies LLP - Protected & Proprietary Statutory Engine */\n" + "\n".join(lines))
+                else:
+                    shutil.copy2(src_file, dest_file)
+                    
+        print(f"✅ Securely processed and bundled clean Chrome Extension into: {ext_dest}")
     
     # Generate interactive offline onboarding HTML & TXT guides in distribution folder
     html_guide_path = os.path.join(dist_folder, "🚀_QUICK_START_&_EXTENSION_SETUP.html")
@@ -156,7 +182,7 @@ def build_executable():
 </div>
 
 <div class="card" style="text-align: center; background: #0e1422;">
-    <p style="color: #94a3b8; font-size: 13px; margin: 0;">Need technical guidance or enterprise volume support?<br>Email our compliance engineering team at <a href="mailto:support@sharpintell.com">support@sharpintell.com</a></p>
+    <p style="color: #94a3b8; font-size: 13px; margin: 0;">Need technical guidance or enterprise volume support?<br>Email our compliance engineering team at <a href="mailto:pnriyas50@gmail.com">pnriyas50@gmail.com</a></p>
 </div>
 </body>
 </html>""")
@@ -189,7 +215,7 @@ TIP: Inside SI Filings Pro, open the "⚡ Chrome RPA" tab and click
 "📂 Open Extension Folder in Windows Explorer" for instant 1-click access!
 
 ================================================================================
-For technical & billing support: support@sharpintell.com
+For technical & billing support: pnriyas50@gmail.com
 ================================================================================
 """)
     print(f"✅ Generated onboarding HTML & TXT setup guide files in distribution folder!")

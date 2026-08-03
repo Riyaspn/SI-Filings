@@ -175,12 +175,12 @@ class AOC4App(ctk.CTk):
 
         buy_link = ctk.CTkLabel(
             links_frame,
-            text="Don't have a license key? Contact us.",
+            text="Don't have a license key? Get 10 Free Filings online.",
             text_color=PRIMARY,
             cursor="hand2"
         )
         buy_link.pack(side="left", padx=10)
-        buy_link.bind("<Button-1>", lambda e: webbrowser.open("https://sharpintell.com"))
+        buy_link.bind("<Button-1>", lambda e: webbrowser.open("https://si-filings.pages.dev/#pricing"))
 
     def _activate_key(self):
         """Validate license key entered by user."""

@@ -16,7 +16,7 @@ if DATABASE_URL.startswith("postgres://"):
 # --- App & Security Settings ---
 SECRET_KEY = os.environ.get("SECRET_KEY", "sifilings-enterprise-secret-key-prod-2026")
 APP_VERSION_LATEST = "1.0.0"
-DOWNLOAD_EXE_URL = os.environ.get("DOWNLOAD_EXE_URL", "https://leadsharp.in/sifilings/download")
+DOWNLOAD_EXE_URL = os.environ.get("DOWNLOAD_EXE_URL", "https://si-filings.pages.dev/#download-section")
 
 # --- PhonePe Payment Gateway Credentials ---
 PHONEPE_MERCHANT_ID = os.environ.get("PHONEPE_MERCHANT_ID", "TESTMERCHANTID")
@@ -35,7 +35,7 @@ UPI_MERCHANT_VPA = os.environ.get("UPI_MERCHANT_VPA", "sharpintell@upi")
 UPI_MERCHANT_NAME = "SI Filings Pro"
 
 # --- Gmail SMTP via Google App Password ---
-SMTP_EMAIL = os.environ.get("SMTP_EMAIL", "support@sharpintell.com")
+SMTP_EMAIL = os.environ.get("SMTP_EMAIL", "pnriyas50@gmail.com")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "") # Set your Google App Password here
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587

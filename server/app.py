@@ -135,6 +135,7 @@ def register_firm():
         </div>
         <p>Open the desktop app, enter your email and this key to unlock instant filing!</p>
         <hr style="border: 0; border-top: 1px solid #334155;">
+        <p style="font-size: 13px; color: #94a3b8;">For technical & billing support, reply directly to this email or contact <a href="mailto:pnriyas50@gmail.com" style="color: #38bdf8;">pnriyas50@gmail.com</a>.</p>
         <p style="font-size: 12px; color: #64748b;">© SharpIntell Technologies LLP — All rights reserved.</p>
     </div>
     """
@@ -290,7 +291,7 @@ def create_recharge_order():
         "merchantTransactionId": order_id,
         "merchantUserId": hashlib.md5(email.encode()).hexdigest()[:16],
         "amount": int(pack_info["price_inr"] * 100), # amount in paise
-        "redirectUrl": f"https://leadsharp.in/sifilings/receipt?order_id={order_id}",
+        "redirectUrl": f"https://si-filings.pages.dev/receipt?order_id={order_id}",
         "callbackUrl": f"{request.host_url}api/billing/webhook",
         "paymentInstrument": {"type": "PAY_PAGE"}
     }

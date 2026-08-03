@@ -202,7 +202,7 @@ if __name__ == "__main__":
     success = db.initialize_schema(uri)
     if success:
         print("\nLet's create your first authorized CA Admin / Test account!")
-        email = input("Enter Admin Email [e.g. riyas@sharpintell.com]: ").strip() or "riyas@sharpintell.com"
+        email = input("Enter Admin Email [e.g. pnriyas50@gmail.com]: ").strip() or "pnriyas50@gmail.com"
         key = input("Enter License Key [e.g. SA-PRO-2026]: ").strip() or "SA-PRO-2026"
         db.seed_initial_test_account(email, key, plan="Enterprise CA Unlimited", limit=-1)
         print("\n🎉 Setup complete! Add this DB URL to your app configuration to start using it live.")
