@@ -132,7 +132,7 @@ def build_executable():
                             continue
                         lines.append(line)
                     with open(dest_file, "w", encoding="utf-8") as out_f:
-                        out_f.write("/* Copyright (C) 2026 Sharp Intell Technologies LLP - Protected & Proprietary Statutory Engine */\n" + "\n".join(lines))
+                        out_f.write("/* Copyright (C) 2026 Sharp Intell - Protected & Proprietary Statutory Engine */\n" + "\n".join(lines))
                 else:
                     shutil.copy2(src_file, dest_file)
                     
