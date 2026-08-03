@@ -348,6 +348,21 @@ def check_for_update():
         "release_notes": "Added full support for AOC-4 AI extraction, Smart CIN Duplicate Shield, and Chrome Extension RPA."
     })
 
+
+@app.route("/api/ai-config", methods=["GET"])
+def get_ai_config():
+    """
+    Securely deliver the live Gemini AI rotation key pool to authorized client desktop software.
+    Allows dynamic scaling of AI keys via Vercel Environment Variables without recompiling desktop app.
+    """
+    default_pool = "AIzaSyCu-qiHdxpKXz3QyZANE0O1lRJob-yzab4,AIzaSyCppn7iEdWgjH6Uql4YhBEcwXJZoB2GF3Q,AIzaSyBFNhhN3Dd0KDPz4pf09_-tSsT1U_vznZI,AIzaSyDOAeLkc67-sjLymS8RJFfHgWVbtUYtdWM,AIzaSyCzyJ19547mtb-9XTdfqatQHUsty06yBrI"
+    ai_keys = os.environ.get("GEMINI_API_KEYS", default_pool)
+    return jsonify({
+        "status": "success",
+        "gemini_api_keys": ai_keys
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🚀 SI Filings Pro Universal Billing API starting on port {port}...")

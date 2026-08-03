@@ -43,6 +43,7 @@ class LicenseManager:
     def __init__(self):
         self.license_info: Optional[Dict[str, Any]] = None
         self.is_offline_mode: bool = False
+        self._cached_cloud_ai_keys: str = ""
         self.settings_data: Dict[str, Any] = self._default_settings()
         self.local_unlocked_tokens: Dict[str, str] = self._load_unlocked_tokens()
         self._load_settings()
@@ -125,7 +126,28 @@ class LicenseManager:
             print(f"Error saving settings: {e}")
 
     def get_gemini_api_key(self) -> str:
-        return self.settings_data.get("gemini_api_key", "")
+        # 1. If user typed a custom private API key in Settings, use it
+        key = self.settings_data.get("gemini_api_key", "").strip()
+        if key:
+            return key
+            
+        # 2. Return cached cloud keys if already synced this session
+        if self._cached_cloud_ai_keys:
+            return self._cached_cloud_ai_keys
+
+        # 3. Dynamically fetch live multi-key rotation pool from Vercel Cloud API
+        try:
+            res = requests.get(f"{API_BASE_URL}/api/ai-config", timeout=4)
+            if res.status_code == 200:
+                cloud_keys = res.json().get("gemini_api_keys", "").strip()
+                if cloud_keys:
+                    self._cached_cloud_ai_keys = cloud_keys
+                    return cloud_keys
+        except Exception as e:
+            print(f"[AI Cloud Sync] Could not reach Vercel: {e}")
+
+        # 4. Fallback to system environment variable
+        return os.getenv("GEMINI_API_KEYS", "")
 
     def get_confidence_threshold(self) -> float:
         return self.settings_data.get("confidence_threshold", 0.95)
