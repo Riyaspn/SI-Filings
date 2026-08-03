@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://si-filings.pages.dev/sitemap.xml

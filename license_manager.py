@@ -18,7 +18,7 @@ import requests
 # Configuration & Endpoints
 # ============================================================
 
-API_BASE_URL = os.environ.get("SI_FILINGS_API_URL", "http://127.0.0.1:5000") # Point to your cloud domain e.g. https://sifilings-api.vercel.app
+API_BASE_URL = os.environ.get("SI_FILINGS_API_URL", "https://sifilings.vercel.app") # Live cloud production domain on Vercel
 APP_DIR = os.path.join(os.getenv("APPDATA", os.path.expanduser("~")), "SI_Filings_Pro")
 LICENSE_FILE = os.path.join(APP_DIR, "license.json")
 SETTINGS_FILE = os.path.join(APP_DIR, "settings.json")
