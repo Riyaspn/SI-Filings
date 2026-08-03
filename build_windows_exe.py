@@ -112,6 +112,87 @@ def build_executable():
         shutil.copytree(ext_src, ext_dest)
         print(f"✅ Bundled Chrome Extension into: {ext_dest}")
     
+    # Generate interactive offline onboarding HTML & TXT guides in distribution folder
+    html_guide_path = os.path.join(dist_folder, "🚀_QUICK_START_&_EXTENSION_SETUP.html")
+    with open(html_guide_path, "w", encoding="utf-8") as f:
+        f.write("""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SI Filings Pro — Quick Start & Chrome RPA Setup Guide</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; line-height: 1.6; max-width: 800px; margin: auto; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h1 { color: #38bdf8; margin-top: 0; }
+    h2 { color: #10b981; margin-top: 0; }
+    code { background: #0e1422; color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-size: 15px; border: 1px solid #334155; font-weight: bold; }
+    .step { background: #0e1422; padding: 15px 20px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #38bdf8; font-size: 15px; }
+    a { color: #38bdf8; text-decoration: none; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>🚀 Welcome to SI Filings Pro v1.0.0</h1>
+    <p>Thank you for choosing Sharp Intell Technologies for your statutory corporate filing automation. Follow the simple steps below to initialize your application and activate the Chrome RPA bridge.</p>
+</div>
+
+<div class="card">
+    <h2>Step 1: Launch the Software & Activate License</h2>
+    <div class="step">1️⃣ Double-click <code>SI_Filings_Pro.exe</code> located inside this folder.</div>
+    <div class="step">2️⃣ If you don't have a license key yet, visit our official website at <a href="https://si-filings.pages.dev" target="_blank">https://si-filings.pages.dev</a> and click <strong>🎁 Claim 10 Free Filings</strong> to instantly receive your 100 Free Trial Credits!</div>
+    <div class="step">3️⃣ Paste your firm email and license key into the login screen and click Activate.</div>
+</div>
+
+<div class="card">
+    <h2>Step 2: Install the Bundled Chrome RPA Extension (30-Second Setup)</h2>
+    <p>Our automation bridge runs safely via local computer loopback (<code>http://127.0.0.1:8765</code>), ensuring your hardware USB Digital Signature Certificates (DSC) remain 100% locally secure without external web transmission.</p>
+    
+    <div class="step">1️⃣ Open Google Chrome and copy-paste <code>chrome://extensions</code> into your top browser address bar.</div>
+    <div class="step">2️⃣ Turn ON the <strong>"Developer mode"</strong> toggle switch at the top-right corner of Chrome.</div>
+    <div class="step">3️⃣ Click the <strong>"Load unpacked"</strong> button at the top-left, select the <code>chrome_extension</code> folder located inside this directory, and click Select Folder!</div>
+    
+    <p style="margin-top: 15px; color: #a7f3d0; font-size: 14px;">💡 <strong>Pro Tip:</strong> Inside the Windows application, open the <em>"⚡ Chrome RPA"</em> tab and click <strong>"📂 Open Extension Folder in Windows Explorer"</strong> to open this folder directly without searching!</p>
+</div>
+
+<div class="card" style="text-align: center; background: #0e1422;">
+    <p style="color: #94a3b8; font-size: 13px; margin: 0;">Need technical guidance or enterprise volume support?<br>Email our compliance engineering team at <a href="mailto:support@sharpintell.com">support@sharpintell.com</a></p>
+</div>
+</body>
+</html>""")
+
+    txt_guide_path = os.path.join(dist_folder, "📖_README_SETUP_INSTRUCTIONS.txt")
+    with open(txt_guide_path, "w", encoding="utf-8") as f:
+        f.write("""================================================================================
+SI FILINGS PRO v1.0.0 — QUICK START & CHROME EXTENSION SETUP GUIDE
+by Sharp Intell Technologies LLP
+================================================================================
+
+STEP 1: LAUNCH THE SOFTWARE
+---------------------------
+1. Double-click "SI_Filings_Pro.exe" to start the application.
+2. If you need a firm license key, get 100 Free Trial Credits instantly at:
+   https://si-filings.pages.dev
+3. Paste your license key into the login screen to unlock all features.
+
+STEP 2: INSTALL THE CHROME RPA EXTENSION (30-Second Setup)
+----------------------------------------------------------
+To enable 1-click auto-filling directly on the MCA V3 Web Portal while keeping
+your hardware USB Digital Signature Certificates (DSC) 100% secure offline:
+
+1. Open Google Chrome and type in the address bar: chrome://extensions
+2. Turn ON the "Developer mode" toggle switch at the top-right corner.
+3. Click "Load unpacked" at the top-left and select the "chrome_extension"
+   folder located inside this software directory.
+
+TIP: Inside SI Filings Pro, open the "⚡ Chrome RPA" tab and click
+"📂 Open Extension Folder in Windows Explorer" for instant 1-click access!
+
+================================================================================
+For technical & billing support: support@sharpintell.com
+================================================================================
+""")
+    print(f"✅ Generated onboarding HTML & TXT setup guide files in distribution folder!")
     print(f"🎉 Build Complete! Standalone application folder generated at:\n   {dist_folder}")
 
 def generate_inno_setup_script():
@@ -126,9 +207,9 @@ def generate_inno_setup_script():
 AppName={APP_NAME}
 AppVersion={APP_VERSION}
 AppPublisher={COMPANY_NAME}
-AppPublisherURL=https://leadsharp.in/sifilings
-AppSupportURL=https://leadsharp.in/sifilings/support
-AppUpdatesURL=https://leadsharp.in/sifilings/updates
+AppPublisherURL=https://si-filings.pages.dev
+AppSupportURL=https://si-filings.pages.dev/contact.html
+AppUpdatesURL=https://si-filings.pages.dev/#download-section
 DefaultDirName={{autopf}}\\{APP_NAME}
 DefaultGroupName={APP_NAME}
 AllowNoIcons=yes

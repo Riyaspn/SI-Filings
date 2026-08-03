@@ -2,9 +2,9 @@
 AppName=SI Filings Pro
 AppVersion=1.0.0
 AppPublisher=Sharp Intell Technologies
-AppPublisherURL=https://leadsharp.in/sifilings
-AppSupportURL=https://leadsharp.in/sifilings/support
-AppUpdatesURL=https://leadsharp.in/sifilings/updates
+AppPublisherURL=https://si-filings.pages.dev
+AppSupportURL=https://si-filings.pages.dev/contact.html
+AppUpdatesURL=https://si-filings.pages.dev/#download-section
 DefaultDirName={autopf}\SI Filings Pro
 DefaultGroupName=SI Filings Pro
 AllowNoIcons=yes

@@ -240,7 +240,7 @@ class AOC4App(ctk.CTk):
             header, text="💳 Recharge Wallet", width=120, height=26,
             fg_color=PRIMARY_DARK, hover_color="#0284c7",
             font=ctk.CTkFont(size=11, weight="bold"),
-            command=lambda: webbrowser.open("https://leadsharp.in/sifilings/recharge")
+            command=lambda: webbrowser.open("https://si-filings.pages.dev/#pricing")
         )
         recharge_btn.pack(side="right", padx=(5, 10), pady=5)
 
@@ -251,11 +251,13 @@ class AOC4App(ctk.CTk):
         self.tab_filing = self.tabview.add("📄 AOC-4 Filing")
         self.tab_results = self.tabview.add("✅ Verification")
         self.tab_excel = self.tabview.add("📊 Excel Auto-Fill")
+        self.tab_extension = self.tabview.add("⚡ Chrome RPA")
         self.tab_settings = self.tabview.add("⚙️ Settings")
 
         self._build_filing_tab()
         self._build_results_tab()
         self._build_excel_tab()
+        self._build_extension_tab()
         self._build_settings_tab()
 
     # ==========================================================
@@ -898,6 +900,117 @@ class AOC4App(ctk.CTk):
             self.after(0, lambda: self.run_excel_btn.configure(state="normal", text="⚡ Auto-Fill Excel Template"))
 
         threading.Thread(target=process, daemon=True).start()
+
+    # ==========================================================
+    # Tab 4: Chrome Extension & RPA Setup
+    # ==========================================================
+
+    def _build_extension_tab(self):
+        """Build the automated Chrome RPA extension setup wizard."""
+        tab = self.tab_extension
+
+        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=15, pady=10)
+
+        # Title & Status
+        ctk.CTkLabel(
+            scroll, text="⚡ MCA V3 Portal Chrome RPA Auto-Filler",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=PRIMARY
+        ).pack(anchor="w", pady=(5, 5))
+
+        status_box = ctk.CTkFrame(scroll, fg_color=BG_CARD, border_width=1, border_color=BORDER)
+        status_box.pack(fill="x", pady=10, ipady=8, padx=5)
+
+        ctk.CTkLabel(
+            status_box, text="● Local Loopback RPA Bridge Active & Listening @ http://127.0.0.1:8765",
+            font=ctk.CTkFont(size=13, weight="bold"), text_color=SUCCESS
+        ).pack(pady=5)
+
+        ctk.CTkLabel(
+            status_box, text="Your hardware USB Digital Signature Certificates (DSC) remain 100% locally secure.",
+            font=ctk.CTkFont(size=11), text_color=TEXT_MUTED
+        ).pack(pady=(0, 5))
+
+        # 3-Step Setup Guide Card
+        guide_box = ctk.CTkFrame(scroll, fg_color=BG_CARD, border_width=1, border_color=BORDER)
+        guide_box.pack(fill="x", pady=15, ipady=12, padx=5)
+
+        ctk.CTkLabel(
+            guide_box, text="🚀 30-Second Quick Installation Guide (One-Time Setup):",
+            font=ctk.CTkFont(size=15, weight="bold"), text_color=TEXT_LIGHT
+        ).pack(anchor="w", padx=20, pady=(10, 15))
+
+        # Step 1
+        s1_row = ctk.CTkFrame(guide_box, fg_color="transparent")
+        s1_row.pack(fill="x", padx=20, pady=5)
+        ctk.CTkLabel(
+            s1_row, text="1️⃣  Open Chrome Extension Manager:",
+            font=ctk.CTkFont(size=13, weight="bold")
+        ).pack(side="left")
+
+        def copy_ext_link():
+            self.clipboard_clear()
+            self.clipboard_append("chrome://extensions")
+            messagebox.showinfo("Copied!", "✅ Link copied to clipboard!\n\nNow open Google Chrome, paste 'chrome://extensions' into the address bar, and hit Enter.")
+
+        ctk.CTkButton(
+            s1_row, text="📋 Copy 'chrome://extensions'",
+            command=copy_ext_link, width=200, height=28,
+            fg_color="#1e293b", border_width=1, border_color=PRIMARY, text_color=PRIMARY
+        ).pack(side="right", padx=(10, 0))
+
+        # Step 2
+        ctk.CTkLabel(
+            guide_box, text="2️⃣  Enable the \"Developer mode\" toggle switch at the top-right corner of Chrome.",
+            font=ctk.CTkFont(size=13), text_color="#cbd5e1"
+        ).pack(anchor="w", padx=20, pady=10)
+
+        # Step 3
+        s3_row = ctk.CTkFrame(guide_box, fg_color="transparent")
+        s3_row.pack(fill="x", padx=20, pady=10)
+        ctk.CTkLabel(
+            s3_row, text="3️⃣  Click \"Load unpacked\" in Chrome and select your bundled extension folder.",
+            font=ctk.CTkFont(size=13), text_color="#cbd5e1"
+        ).pack(side="left")
+
+        def open_ext_folder():
+            try:
+                if getattr(sys, "frozen", False):
+                    base_dir = os.path.dirname(sys.executable)
+                    ext_path = os.path.join(base_dir, "chrome_extension")
+                else:
+                    base_dir = os.path.dirname(os.path.abspath(__file__))
+                    ext_path = os.path.join(base_dir, "mca-extension")
+
+                if os.path.exists(ext_path):
+                    os.startfile(ext_path)
+                else:
+                    os.startfile(base_dir)
+                    messagebox.showinfo("Notice", f"Opening software folder: {base_dir}\nSelect the extension folder inside Chrome.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not open folder automatically: {e}")
+
+        ctk.CTkButton(
+            guide_box, text="📂 Open Chrome Extension Folder in Windows Explorer",
+            command=open_ext_folder, width=380, height=38,
+            fg_color=PRIMARY, text_color=BG_DARK, hover_color=PRIMARY_DARK,
+            font=ctk.CTkFont(weight="bold", size=13)
+        ).pack(pady=(15, 10))
+
+        # Testing & Verification section
+        test_box = ctk.CTkFrame(scroll, fg_color="#0e1320", border_width=1, border_color="#334155")
+        test_box.pack(fill="x", pady=15, ipady=10, padx=5)
+
+        ctk.CTkLabel(
+            test_box, text="💡 How to Auto-Fill on MCA Portal:",
+            font=ctk.CTkFont(size=13, weight="bold"), text_color=WARNING
+        ).pack(anchor="w", padx=20, pady=(10, 5))
+
+        ctk.CTkLabel(
+            test_box, text="Once installed, simply approve financial data in the '✅ Verification' tab,\nthen open your MCA AOC-4 / MGT-7 web form in Chrome and click the SI Filings Pro toolbar icon!",
+            font=ctk.CTkFont(size=12), text_color=TEXT_MUTED, justify="left"
+        ).pack(anchor="w", padx=20, pady=(0, 10))
 
     # ==========================================================
     # Utilities
