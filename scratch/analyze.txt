@@ -1,0 +1,1 @@
+// We will inspect the JSON exported structure by searching for key table row IDs in popup.js directly!

@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "SI Filings Pro — MCA & Statutory Auto-Filler",
+  "version": "1.0.0",
+  "description": "1-Click Auto-Fill for MCA V3 (AOC-4, MGT-7), GST, and Corporate Filing Forms by Sharp Intell Technologies.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.mca.gov.in/*",
+    "http://127.0.0.1:8765/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.mca.gov.in/*",
+        "https://mca.gov.in/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

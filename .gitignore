@@ -1,0 +1,18 @@
+# Environment variables and API keys
+.env
+*.env
+*.env.local
+
+# Python cache & build outputs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+
+# IDE / Antigravity data
+.gemini/
+.vscode/
+.idea/
