@@ -112,11 +112,18 @@ class LicenseManager:
         if os.path.exists(SETTINGS_FILE):
             try:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                    self.settings_data.update(json.load(f))
+                    data = json.load(f)
+                    if "gemini_api_key" in data:
+                        del data["gemini_api_key"]
+                        self.save_settings(data)
+                    else:
+                        self.settings_data.update(data)
             except Exception:
                 pass
 
     def save_settings(self, new_settings: Dict[str, Any]) -> None:
+        if "gemini_api_key" in new_settings:
+            del new_settings["gemini_api_key"]
         self.settings_data.update(new_settings)
         try:
             os.makedirs(APP_DIR, exist_ok=True)
@@ -126,12 +133,7 @@ class LicenseManager:
             print(f"Error saving settings: {e}")
 
     def get_gemini_api_key(self) -> str:
-        # 1. If user typed a custom private API key in Settings, use it
-        key = self.settings_data.get("gemini_api_key", "").strip()
-        if key:
-            return key
-            
-        # 2. Return cached cloud keys if already synced this session
+        # 1. Return cached cloud keys if already synced this session
         if self._cached_cloud_ai_keys:
             return self._cached_cloud_ai_keys
 

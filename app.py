@@ -252,13 +252,11 @@ class AOC4App(ctk.CTk):
         self.tab_results = self.tabview.add("✅ Verification")
         self.tab_excel = self.tabview.add("📊 Excel Auto-Fill")
         self.tab_extension = self.tabview.add("⚡ Chrome RPA")
-        self.tab_settings = self.tabview.add("⚙️ Settings")
 
         self._build_filing_tab()
         self._build_results_tab()
         self._build_excel_tab()
         self._build_extension_tab()
-        self._build_settings_tab()
 
     # ==========================================================
     # Tab 1: AOC-4 Filing (Upload & Parse)
@@ -715,85 +713,6 @@ class AOC4App(ctk.CTk):
                 json.dump(self.parsed_result, f, indent=2, ensure_ascii=False, default=str)
             messagebox.showinfo("Exported", f"AOC-4 data exported to:\n{filepath}")
             self._log(f"📥 Data exported to: {filepath}")
-
-    # ==========================================================
-    # Tab 3: Settings
-    # ==========================================================
-
-    def _build_settings_tab(self):
-        """Build the settings tab."""
-        tab = self.tab_settings
-
-        scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
-        scroll.pack(fill="both", expand=True, padx=15, pady=15)
-
-        # Gemini API Key
-        ctk.CTkLabel(
-            scroll, text="Google Gemini API Key (AI Fallback)",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", pady=(0, 5))
-
-        ctk.CTkLabel(
-            scroll,
-            text="Used only when the free parser confidence is below threshold. Leave blank to disable AI fallback.",
-            font=ctk.CTkFont(size=11), text_color=TEXT_MUTED
-        ).pack(anchor="w", pady=(0, 8))
-
-        self.gemini_key_entry = ctk.CTkEntry(
-            scroll, width=500, height=35,
-            placeholder_text="AIza..."
-        )
-        self.gemini_key_entry.pack(anchor="w", pady=(0, 20))
-        self.gemini_key_entry.insert(0, self.license_mgr.get_gemini_api_key())
-
-        # Confidence Threshold
-        ctk.CTkLabel(
-            scroll, text="Parser Confidence Threshold",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", pady=(0, 5))
-
-        ctk.CTkLabel(
-            scroll,
-            text="If the free parser confidence falls below this value, the Gemini AI fallback is triggered.",
-            font=ctk.CTkFont(size=11), text_color=TEXT_MUTED
-        ).pack(anchor="w", pady=(0, 8))
-
-        threshold_row = ctk.CTkFrame(scroll, fg_color="transparent")
-        threshold_row.pack(anchor="w", pady=(0, 20))
-
-        self.threshold_entry = ctk.CTkEntry(threshold_row, width=80, height=35)
-        self.threshold_entry.pack(side="left", padx=(0, 10))
-        self.threshold_entry.insert(0, str(int(self.license_mgr.get_confidence_threshold() * 100)))
-
-        ctk.CTkLabel(threshold_row, text="% (default: 95%)", text_color=TEXT_MUTED).pack(side="left")
-
-        # Save Button
-        save_btn = ctk.CTkButton(
-            scroll, text="💾 Save Settings",
-            command=self._save_settings,
-            height=40, width=200,
-            fg_color=PRIMARY, text_color=BG_DARK,
-            hover_color=PRIMARY_DARK,
-            font=ctk.CTkFont(weight="bold")
-        )
-        save_btn.pack(anchor="w", pady=20)
-
-    def _save_settings(self):
-        """Save settings to local storage."""
-        gemini_key = self.gemini_key_entry.get().strip()
-
-        try:
-            threshold = int(self.threshold_entry.get().strip()) / 100.0
-            threshold = max(0.5, min(1.0, threshold))
-        except (ValueError, TypeError):
-            threshold = 0.95
-
-        self.license_mgr.save_settings({
-            "gemini_api_key": gemini_key,
-            "confidence_threshold": threshold,
-        })
-
-        messagebox.showinfo("Settings Saved", "Settings saved successfully!")
 
     # ==========================================================
     # Excel Tab
