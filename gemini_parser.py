@@ -106,34 +106,87 @@ def extract_with_gemini(
     prompt = EXTRACTION_PROMPT.replace("{schema_json}", schema_json)
 
     models_to_try = [
+        "gemini-3.5-flash-lite",
+        "gemini-2.5-flash", 
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
         model_name,
-        "gemini-3.5-flash-lite", 
-        "gemini-3.1-flash-lite", 
-        "gemini-1.5-flash-latest", 
-        "gemini-2.5-flash"
     ]
     
     # Remove duplicates preserving order
     models_to_try = list(dict.fromkeys(models_to_try))
 
-    response = None
+    # Pre-read PDF bytes and base64 encode for direct REST Header requests (supports AQ... Auth keys)
+    import base64
+    import requests
+    with open(filepath, "rb") as f_pdf:
+        pdf_bytes = f_pdf.read()
+        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+
+    response_text = None
     last_error = None
     successful_key = None
 
     # Rotate through API Keys if rate limit / quota exceeded occurs
     for k_idx, current_key in enumerate(key_list):
+        print(f"  📤 [Gemini AI Engine] Initializing AI extraction (Key #{k_idx+1}: {current_key[:8]}...)...")
+        
+        # Method 1: Direct REST with 2026 x-goog-api-key Header (supports AQ... Auth Keys & AIzaSy... Keys)
+        for m_name in models_to_try:
+            try:
+                print(f"  🧠 [Model: {m_name}] Analyzing financial statement & extracting 117 fields...")
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent"
+                headers = {
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": current_key
+                }
+                payload = {
+                    "contents": [
+                        {
+                            "parts": [
+                                {"text": prompt},
+                                {
+                                    "inline_data": {
+                                        "mime_type": "application/pdf",
+                                        "data": pdf_base64
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "generationConfig": {
+                        "response_mime_type": "application/json",
+                        "temperature": 0.1
+                    }
+                }
+                resp = requests.post(url, json=payload, headers=headers, timeout=120)
+                if resp.status_code == 200:
+                    data_json = resp.json()
+                    candidates = data_json.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts and "text" in parts[0]:
+                            response_text = parts[0]["text"]
+                            successful_key = current_key[:8] + "..."
+                            print(f"  ✨ Extraction successfully completed via {m_name} (Header Auth)!")
+                            break
+                else:
+                    err_msg = resp.text
+                    print(f"  ⚠️ [Model: {m_name}] REST Header Notice: HTTP {resp.status_code} - {err_msg[:120]}...")
+                    last_error = f"HTTP {resp.status_code}: {err_msg}"
+            except Exception as r_err:
+                last_error = str(r_err)
+                continue
+
+        if response_text:
+            break
+
+        # Method 2: SDK File Upload API Fallback
         try:
             genai.configure(api_key=current_key)
-            print(f"  📤 [Gemini AI Engine] Uploading PDF file to Google cloud servers (Key #{k_idx+1})...")
-
-            # Upload the PDF
             uploaded_file = genai.upload_file(filepath, mime_type="application/pdf")
-            print("  ✅ PDF uploaded successfully. Initializing AI deep extraction...")
-
-            # Try models with current key
             for m_name in models_to_try:
                 try:
-                    print(f"  🧠 [Model: {m_name}] Analyzing financial statement & extracting 117 fields... (approx. 15-35s)")
                     model = genai.GenerativeModel(m_name)
                     res = model.generate_content(
                         [prompt, uploaded_file],
@@ -143,41 +196,34 @@ def extract_with_gemini(
                         )
                     )
                     if res and res.text:
-                        response = res
+                        response_text = res.text
                         successful_key = current_key[:8] + "..."
-                        print(f"  ✨ Extraction successfully completed via {m_name}!")
+                        print(f"  ✨ Extraction successfully completed via {m_name} (File API)!")
                         break
                 except Exception as m_err:
                     last_error = m_err
-                    print(f"  ⚠️ [Model: {m_name}] Notice: {str(m_err)[:100]}... Trying next fallback model.")
-                    # If quota/rate limit error, stop trying models on this key and move to next key
-                    if "429" in str(m_err) or "ResourceExhausted" in str(m_err) or "Quota" in str(m_err):
-                        raise m_err
                     continue
 
-            # Cleanup uploaded file
             try:
                 genai.delete_file(uploaded_file.name)
             except Exception:
                 pass
 
-            if response:
+            if response_text:
                 break
-
-        except Exception as key_err:
-            print(f"  ⚠️ Gemini Key #{k_idx+1} Notice: {key_err}. Failing over to next API key...")
-            last_error = key_err
+        except Exception as sdk_err:
+            last_error = sdk_err
             continue
 
-    if not response:
+    if not response_text:
         raise Exception(f"All {len(key_list)} Gemini API keys exhausted or failed. Last error: {last_error}")
 
     # Parse the response
     try:
-        extracted = json.loads(response.text)
+        extracted = json.loads(response_text)
     except json.JSONDecodeError:
         # Try to extract JSON from the response text
-        text = response.text.strip()
+        text = response_text.strip()
         # Remove possible markdown code block wrapping
         if text.startswith("```"):
             text = text.split("\n", 1)[1] if "\n" in text else text[3:]
