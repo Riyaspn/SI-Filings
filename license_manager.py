@@ -178,7 +178,7 @@ class LicenseManager:
             resp = requests.post(
                 f"{API_BASE_URL}/api/license/validate",
                 json={"license_key": key, "email": email},
-                timeout=5
+                timeout=15
             )
 
             if resp.status_code == 200:
@@ -232,7 +232,7 @@ class LicenseManager:
             resp = requests.post(
                 f"{API_BASE_URL}/api/license/validate",
                 json={"license_key": key, "email": email},
-                timeout=6
+                timeout=15
             )
             if resp.status_code == 200:
                 server_data = resp.json()
@@ -305,7 +305,7 @@ class LicenseManager:
             resp = requests.post(
                 f"{API_BASE_URL}/api/usage/consume",
                 json={"license_key": key, "module": module, "cin": cin, "fy": fy, "company_name": company_name},
-                timeout=8
+                timeout=15
             )
             data = resp.json()
             if resp.status_code == 200 and data.get("status") == "success":

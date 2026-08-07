@@ -10,6 +10,7 @@ import os
 import uuid
 import smtplib
 import hashlib
+import hmac
 import json
 import base64
 import requests
@@ -285,37 +286,91 @@ def create_recharge_order():
             "message": f"Scan UPI QR or open Intent URL to pay ₹{amount}. Zero PG transaction fee!"
         }), 200
 
-    # Otherwise construct PhonePe Payment Session
-    payload = {
-        "merchantId": config.PHONEPE_MERCHANT_ID,
-        "merchantTransactionId": order_id,
-        "merchantUserId": hashlib.md5(email.encode()).hexdigest()[:16],
-        "amount": int(pack_info["price_inr"] * 100), # amount in paise
-        "redirectUrl": f"https://si-filings.pages.dev/receipt?order_id={order_id}",
-        "callbackUrl": f"{request.host_url}api/billing/webhook",
-        "paymentInstrument": {"type": "PAY_PAGE"}
-    }
-    encoded_payload = base64.b64encode(json.dumps(payload).encode("utf-8")).decode("utf-8")
-    checksum = hashlib.sha256(f"{encoded_payload}/pg/v1/pay{config.PHONEPE_SALT_KEY}".encode("utf-8")).hexdigest() + f"###{config.PHONEPE_SALT_INDEX}"
-
+    # Otherwise construct Razorpay Order
     try:
-        resp = requests.post(
-            config.PHONEPE_API_URL,
-            json={"request": encoded_payload},
-            headers={"Content-Type": "application/json", "X-VERIFY": checksum}
-        )
-        if resp.ok and resp.json().get("success"):
-            pay_url = resp.json().get("data", {}).get("instrumentResponse", {}).get("redirectInfo", {}).get("url", "")
-            return jsonify({"order_id": order_id, "payment_mode": "PHONEPE_PG", "checkout_url": pay_url}), 200
+        # Create Razorpay Order
+        amount_paise = int(pack_info["price_inr"] * 100)
+        auth = (config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET)
+        payload = {
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": order_id
+        }
+        
+        resp = requests.post("https://api.razorpay.com/v1/orders", auth=auth, json=payload, timeout=10)
+        if resp.ok:
+            rzp_data = resp.json()
+            return jsonify({
+                "order_id": order_id, 
+                "payment_mode": "RAZORPAY",
+                "razorpay_order_id": rzp_data.get("id"),
+                "key_id": config.RAZORPAY_KEY_ID,
+                "amount_inr": pack_info["price_inr"]
+            }), 200
+        else:
+            return jsonify({"error": "Failed to create Razorpay order"}), 500
     except Exception as e:
-        print(f"[PhonePe PG Error] {e}")
+        print(f"[Razorpay Error] {e}")
 
     # Fallback simulation for local development / testing
     return jsonify({
         "order_id": order_id,
-        "payment_mode": "PHONEPE_PG_DEV_SIMULATED",
-        "checkout_url": f"{request.host_url}api/billing/dev_simulate_pay?order_id={order_id}"
+        "payment_mode": "RAZORPAY_DEV_SIMULATED",
     }), 200
+
+
+@app.route("/api/billing/verify-razorpay", methods=["POST"])
+def verify_razorpay():
+    """
+    Synchronous verification callback for Razorpay.
+    """
+    data = request.get_json() or {}
+    order_id = data.get("order_id") # Neon DB Order ID
+    razorpay_order_id = data.get("razorpay_order_id")
+    razorpay_payment_id = data.get("razorpay_payment_id")
+    razorpay_signature = data.get("razorpay_signature")
+
+    if not all([order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+        return jsonify({"error": "Missing parameters"}), 400
+
+    # Verify Signature
+    payload = f"{razorpay_order_id}|{razorpay_payment_id}"
+    expected_sig = hmac.new(
+        config.RAZORPAY_KEY_SECRET.encode("utf-8"),
+        payload.encode("utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected_sig, razorpay_signature):
+        return jsonify({"error": "Invalid signature"}), 400
+
+    try:
+        txn = PaymentTransaction.query.filter_by(order_id=order_id).first()
+        if not txn:
+            return jsonify({"error": "Order not found"}), 404
+
+        if txn.status == "PAID":
+            return jsonify({"success": True, "message": "Already processed", "credits_added": 0}), 200
+
+        txn.status = "PAID"
+        txn.pg_reference = razorpay_payment_id
+        txn.completed_at = datetime.utcnow()
+
+        account = FirmAccount.query.filter_by(customer_email=txn.customer_email).first()
+        if account:
+            account.credits_balance += txn.credits_added
+            account.total_credits_purchased += txn.credits_added
+        
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "credits_added": txn.credits_added,
+            "credits_balance": account.credits_balance if account else 0
+        }), 200
+
+    except Exception as e:
+        print(f"[Verify Error] {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 @app.route("/api/billing/dev_simulate_pay", methods=["GET"])

@@ -18,17 +18,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "sifilings-enterprise-secret-key-prod-
 APP_VERSION_LATEST = "1.0.0"
 DOWNLOAD_EXE_URL = os.environ.get("DOWNLOAD_EXE_URL", "https://si-filings.pages.dev/#download-section")
 
-# --- PhonePe Payment Gateway Credentials ---
-PHONEPE_MERCHANT_ID = os.environ.get("PHONEPE_MERCHANT_ID", "TESTMERCHANTID")
-PHONEPE_SALT_KEY = os.environ.get("PHONEPE_SALT_KEY", "test-salt-key-8888")
-PHONEPE_SALT_INDEX = int(os.environ.get("PHONEPE_SALT_INDEX", 1))
-PHONEPE_ENV = os.environ.get("PHONEPE_ENV", "SANDBOX") # "SANDBOX" or "PROD"
-
-PHONEPE_API_URL = (
-    "https://api.phonepe.com/apis/hermes/pg/v1/pay"
-    if PHONEPE_ENV == "PROD"
-    else "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay"
-)
+# --- Razorpay Payment Gateway Credentials ---
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_YourTestKeyId")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "YourTestKeySecret")
 
 # --- Direct Business UPI Intent / QR Billing ---
 UPI_MERCHANT_VPA = os.environ.get("UPI_MERCHANT_VPA", "sharpintell@upi")

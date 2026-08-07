@@ -150,12 +150,14 @@ async function handleRechargeSubmit(event) {
     const statusBox = document.getElementById("recharge-status");
 
     const packageKey = amount === 14999 ? "enterprise" : "pro";
-    const payMode = gateway === "UPI" ? "UPI_DIRECT" : "PHONEPE_PG";
+    const payMode = gateway === "UPI" ? "UPI_DIRECT" : "RAZORPAY";
 
     submitBtn.disabled = true;
     submitBtn.innerText = "⏳ Initializing Secure Invoice...";
     statusBox.style.display = "block";
     statusBox.innerHTML = "Processing invoice request...";
+    statusBox.style.background = "#0e1422";
+    statusBox.style.color = "#38bdf8";
 
     try {
         const resp = await fetch(`${CLOUD_API_URL}/api/billing/recharge`, {
@@ -174,9 +176,61 @@ async function handleRechargeSubmit(event) {
                 statusBox.innerHTML = `✅ <strong>Digital UPI Invoice Ready! (Order ID: ${data.order_id})</strong><br><br>` +
                                       `<a href="${data.upi_intent}" class="btn btn-primary btn-sm" target="_blank" style="margin-bottom:8px;">📱 Open UPI App to Pay ₹${data.amount_inr}</a><br>` +
                                       `<span style="font-size: 11px;">Zero Payment Gateway transaction fees! Your wallet will automatically recharge instantly upon verification.</span>`;
-            } else if (data.checkout_url) {
-                statusBox.innerHTML = `Redirecting to PhonePe Secure Payment Page...`;
-                window.location.href = data.checkout_url;
+            } else if (data.payment_mode === "RAZORPAY" && data.razorpay_order_id) {
+                statusBox.innerHTML = `⏳ Opening Razorpay Secure Checkout...`;
+                
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount_inr * 100,
+                    currency: "INR",
+                    name: "SI Filings Pro",
+                    description: "Wallet Recharge",
+                    order_id: data.razorpay_order_id,
+                    handler: async function (response) {
+                        statusBox.innerHTML = "⏳ Verifying cryptographic signature...";
+                        try {
+                            const verifyResp = await fetch(`${CLOUD_API_URL}/api/billing/verify-razorpay`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    order_id: data.order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            });
+                            const vData = await verifyResp.json();
+                            if (verifyResp.ok && vData.success) {
+                                statusBox.style.background = "rgba(16, 185, 129, 0.12)";
+                                statusBox.style.borderColor = "#10b981";
+                                statusBox.style.color = "#a7f3d0";
+                                statusBox.innerHTML = `✅ <strong>Payment Successful!</strong><br>Added ${vData.credits_added} SI Credits to your firm wallet.`;
+                            } else {
+                                throw new Error(vData.error || "Signature verification failed");
+                            }
+                        } catch (e) {
+                            statusBox.style.background = "rgba(239, 68, 68, 0.12)";
+                            statusBox.style.color = "#fca5a5";
+                            statusBox.innerHTML = `❌ Verification failed: ${e.message}`;
+                        }
+                    },
+                    prefill: { email: email },
+                    theme: { color: "#38bdf8" }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    statusBox.style.background = "rgba(239, 68, 68, 0.12)";
+                    statusBox.style.color = "#fca5a5";
+                    statusBox.innerHTML = `❌ Payment failed: ${response.error.description}`;
+                });
+                rzp.open();
+                statusBox.innerHTML = "Secure Checkout Window Opened.";
+            } else if (data.payment_mode === "RAZORPAY_DEV_SIMULATED") {
+                statusBox.style.background = "rgba(16, 185, 129, 0.12)";
+                statusBox.style.borderColor = "#10b981";
+                statusBox.style.color = "#a7f3d0";
+                statusBox.innerHTML = `✅ <strong>Dev Simulated Payment Created!</strong><br>Order ID: ${data.order_id}`;
             }
         } else {
             statusBox.style.background = "rgba(239, 68, 68, 0.12)";
