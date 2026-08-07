@@ -273,20 +273,7 @@ def create_recharge_order():
     )
     db.session.add(order)
     db.session.commit()
-
-    if payment_mode == "UPI_DIRECT":
-        # Generate zero-fee Business UPI QR Intent URL
-        amount = pack_info["price_inr"]
-        upi_url = f"upi://pay?pa={config.UPI_MERCHANT_VPA}&pn={config.UPI_MERCHANT_NAME}&tr={order_id}&tn=SI%20Credits%20Recharge%20{pack_info['credits']}&am={amount}&cu=INR"
-        return jsonify({
-            "order_id": order_id,
-            "payment_mode": "UPI_DIRECT",
-            "upi_intent": upi_url,
-            "amount_inr": amount,
-            "message": f"Scan UPI QR or open Intent URL to pay ₹{amount}. Zero PG transaction fee!"
-        }), 200
-
-    # Otherwise construct Razorpay Order
+    # Construct Razorpay Order
     try:
         # Create Razorpay Order
         amount_paise = int(pack_info["price_inr"] * 100)

@@ -145,15 +145,14 @@ async function handleRechargeSubmit(event) {
 
     const email = document.getElementById("recharge-email").value.trim().toLowerCase();
     const amount = parseInt(document.getElementById("recharge-amount-val").value || "5999");
-    const gateway = document.querySelector('input[name="gateway"]:checked').value;
     const submitBtn = document.getElementById("recharge-submit-btn");
     const statusBox = document.getElementById("recharge-status");
 
     const packageKey = amount === 14999 ? "enterprise" : "pro";
-    const payMode = gateway === "UPI" ? "UPI_DIRECT" : "RAZORPAY";
+    const payMode = "RAZORPAY";
 
     submitBtn.disabled = true;
-    submitBtn.innerText = "⏳ Initializing Secure Invoice...";
+    submitBtn.innerText = "⏳ Initializing Secure Checkout...";
     statusBox.style.display = "block";
     statusBox.innerHTML = "Processing invoice request...";
     statusBox.style.background = "#0e1422";
@@ -169,14 +168,7 @@ async function handleRechargeSubmit(event) {
         const data = await resp.json();
 
         if (resp.ok) {
-            if (data.payment_mode === "UPI_DIRECT" && data.upi_intent) {
-                statusBox.style.background = "rgba(16, 185, 129, 0.12)";
-                statusBox.style.borderColor = "#10b981";
-                statusBox.style.color = "#a7f3d0";
-                statusBox.innerHTML = `✅ <strong>Digital UPI Invoice Ready! (Order ID: ${data.order_id})</strong><br><br>` +
-                                      `<a href="${data.upi_intent}" class="btn btn-primary btn-sm" target="_blank" style="margin-bottom:8px;">📱 Open UPI App to Pay ₹${data.amount_inr}</a><br>` +
-                                      `<span style="font-size: 11px;">Zero Payment Gateway transaction fees! Your wallet will automatically recharge instantly upon verification.</span>`;
-            } else if (data.payment_mode === "RAZORPAY" && data.razorpay_order_id) {
+            if (data.payment_mode === "RAZORPAY" && data.razorpay_order_id) {
                 statusBox.innerHTML = `⏳ Opening Razorpay Secure Checkout...`;
                 
                 const options = {
@@ -242,7 +234,7 @@ async function handleRechargeSubmit(event) {
         statusBox.innerHTML = `⚠️ Network communication error with cloud billing server.`;
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = "Generate Digital Invoice & Checkout";
+        submitBtn.innerText = "Proceed to Secure Checkout";
     }
 }
 
