@@ -275,7 +275,7 @@ class AOC4App(ctk.CTk):
 
         ctk.CTkLabel(
             tab,
-            text="Upload a PDF or Word (.docx) file of the company's Audited Financial Statement.",
+            text="Upload a PDF, Word (.docx), or Excel (.xlsx) file of the company's Audited Financial Statement.",
             font=ctk.CTkFont(size=12),
             text_color=TEXT_MUTED
         ).pack(pady=(0, 15))
@@ -339,9 +339,10 @@ class AOC4App(ctk.CTk):
         filepath = filedialog.askopenfilename(
             title="Select Financial Statement",
             filetypes=[
-                ("Financial Statements", "*.pdf *.docx"),
+                ("Financial Statements", "*.pdf *.docx *.xlsx *.xls"),
                 ("PDF Files", "*.pdf"),
                 ("Word Documents", "*.docx"),
+                ("Excel Files", "*.xlsx *.xls"),
                 ("All Files", "*.*"),
             ],
             initialdir=self.license_mgr.settings_data.get("last_used_directory", "")
@@ -359,6 +360,14 @@ class AOC4App(ctk.CTk):
     def _start_parsing(self):
         """Start parsing in a background thread."""
         if not self.current_file:
+            return
+
+        # Active Subscription Gate
+        if self.license_mgr.get_credits_balance() <= 0:
+            messagebox.showerror(
+                "Active Subscription Required", 
+                "Your wallet balance is 0 SI Credits.\n\nTo use the software (including the local parser and Chrome Extension), you must maintain an active balance of at least 1 credit.\n\nPlease click 'Recharge Wallet' in the top right to continue."
+            )
             return
 
         self.parse_btn.configure(state="disabled", text="⏳ Parsing...")

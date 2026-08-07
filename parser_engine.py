@@ -1238,8 +1238,10 @@ def parse_financial_statement(filepath: str) -> Dict[str, Any]:
     elif ext in (".docx", ".doc"):
         data, matched, unmatched, diagnostics = extract_from_docx(filepath)
         method = "python-docx"
+    elif ext in (".xlsx", ".xls"):
+        raise ValueError(f"Excel files ({ext}) are only supported when the AI Engine (Gemini) is active. Please recharge your wallet or enter an API key.")
     else:
-        raise ValueError(f"Unsupported file type: {ext}. Please provide a .pdf or .docx file.")
+        raise ValueError(f"Unsupported file type: {ext}. Please provide a .pdf, .docx, or .xlsx file.")
 
     # Apply Schedule III Accounting Inference Rules
     apply_schedule_iii_inference_rules(data, matched)

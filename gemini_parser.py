@@ -147,7 +147,7 @@ def extract_with_gemini(
                                 {"text": prompt},
                                 {
                                     "inline_data": {
-                                        "mime_type": "application/pdf",
+                                        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if filepath.lower().endswith(".xlsx") else ("application/vnd.ms-excel" if filepath.lower().endswith(".xls") else ("application/vnd.openxmlformats-officedocument.wordprocessingml.document" if filepath.lower().endswith(".docx") else "application/pdf")),
                                         "data": pdf_base64
                                     }
                                 }
