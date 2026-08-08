@@ -258,6 +258,25 @@ class AOC4App(ctk.CTk):
         self._build_excel_tab()
         self._build_extension_tab()
 
+        # OTA Update Check
+        def run_update_check():
+            try:
+                import requests
+                resp = requests.get("https://sifilings.vercel.app/api/system/check-update?version=1.1.0", timeout=5)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("is_outdated"):
+                        msg = f"A new version of SI Filings Pro (v{data.get('latest_version')}) is available!\n\nRelease Notes:\n{data.get('release_notes')}\n\nWould you like to download it now?"
+                        def show_prompt():
+                            if messagebox.askyesno("Update Available", msg):
+                                import webbrowser
+                                webbrowser.open(data.get("download_url", "https://github.com/Riyaspn/SI-Filings/releases/latest"))
+                        self.after(2000, show_prompt)
+            except Exception as e:
+                pass
+                
+        threading.Thread(target=run_update_check, daemon=True).start()
+
     # ==========================================================
     # Tab 1: AOC-4 Filing (Upload & Parse)
     # ==========================================================

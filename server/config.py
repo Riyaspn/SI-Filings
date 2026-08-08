@@ -15,7 +15,7 @@ if DATABASE_URL.startswith("postgres://"):
 
 # --- App & Security Settings ---
 SECRET_KEY = os.environ.get("SECRET_KEY", "sifilings-enterprise-secret-key-prod-2026")
-APP_VERSION_LATEST = "1.0.0"
+APP_VERSION_LATEST = "1.1.0"
 DOWNLOAD_EXE_URL = os.environ.get("DOWNLOAD_EXE_URL", "https://si-filings.pages.dev/#download-section")
 
 # --- Razorpay Payment Gateway Credentials ---
